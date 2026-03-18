@@ -159,8 +159,8 @@ export const uploadApi = {
       const msg = typeof body.error === 'string' ? body.error : `Upload failed: HTTP ${res.status}`;
       throw new Error(msg);
     }
-    const data = await res.json() as { url: string; publicId: string };
-    return data;
+    const json = await res.json() as { data: { url: string; publicId: string } };
+    return json.data;
   },
   deleteImage: (publicId: string) =>
     request<{ success: boolean }>(`/upload/${encodeURIComponent(publicId)}`, { method: 'DELETE' }),
