@@ -19,8 +19,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <CartDrawer />
       <BrowserRouter>
+        <CartDrawer />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/shop/mukhawar" element={<ShopMukhawar />} />
@@ -34,7 +34,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
     </TooltipProvider>
     </CartProvider>
   </QueryClientProvider>
