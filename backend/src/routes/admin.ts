@@ -13,6 +13,25 @@ import { adminAuth } from '../middleware/auth';
 const router = new Hono();
 router.use('*', adminAuth);
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Parse and validate a route :id param as a positive integer.
+ * Returns null if the value is not a positive integer (prevents NaN from
+ * propagating into DB queries and causing unpredictable behaviour).
+ */
+function parseId(raw: string): number | null {
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+/** Clamp a pagination limit to a safe range. */
+function parsePagination(limitStr: string, offsetStr: string) {
+  const limit = Math.min(Math.max(parseInt(limitStr) || 50, 1), 200);
+  const offset = Math.max(parseInt(offsetStr) || 0, 0);
+  return { limit, offset };
+}
+
 // ─── Zod Schemas ─────────────────────────────────────────────────────────────
 
 const categorySchema = z.object({
@@ -76,7 +95,8 @@ router.post('/categories', zValidator('json', categorySchema), async (c) => {
 });
 
 router.put('/categories/:id', zValidator('json', categorySchema.partial()), async (c) => {
-  const id = Number(c.req.param('id'));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
   const data = c.req.valid('json');
   const [row] = await db.update(categories).set(data).where(eq(categories.id, id)).returning();
   if (!row) return c.json({ error: 'Category not found' }, 404);
@@ -84,8 +104,10 @@ router.put('/categories/:id', zValidator('json', categorySchema.partial()), asyn
 });
 
 router.delete('/categories/:id', async (c) => {
-  const id = Number(c.req.param('id'));
-  await db.delete(categories).where(eq(categories.id, id));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
+  const [row] = await db.delete(categories).where(eq(categories.id, id)).returning();
+  if (!row) return c.json({ error: 'Category not found' }, 404);
   return c.json({ success: true });
 });
 
@@ -97,7 +119,8 @@ router.get('/products', async (c) => {
 });
 
 router.get('/products/:id', async (c) => {
-  const id = Number(c.req.param('id'));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
   const [row] = await db.select().from(products).where(eq(products.id, id));
   if (!row) return c.json({ error: 'Product not found' }, 404);
   return c.json({ data: row });
@@ -110,7 +133,8 @@ router.post('/products', zValidator('json', productSchema), async (c) => {
 });
 
 router.put('/products/:id', zValidator('json', productSchema.partial()), async (c) => {
-  const id = Number(c.req.param('id'));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
   const data = c.req.valid('json');
   const [row] = await db
     .update(products)
@@ -122,7 +146,8 @@ router.put('/products/:id', zValidator('json', productSchema.partial()), async (
 });
 
 router.delete('/products/:id', async (c) => {
-  const id = Number(c.req.param('id'));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
   // Soft delete — mark out of stock rather than permanently deleting
   const [row] = await db
     .update(products)
@@ -136,31 +161,22 @@ router.delete('/products/:id', async (c) => {
 // ─── CRM — Clients ────────────────────────────────────────────────────────────
 
 router.get('/clients', async (c) => {
-  const { search, tag, limit = '50', offset = '0' } = c.req.query();
-  let rows;
+  const { limit: limitStr = '50', offset: offsetStr = '0' } = c.req.query();
+  const { limit, offset } = parsePagination(limitStr, offsetStr);
 
-  if (search) {
-    // Fall through to unfiltered — search filtering happens in-memory below
-    rows = await db
-      .select()
-      .from(clients)
-      .orderBy(clients.createdAt)
-      .limit(Number(limit))
-      .offset(Number(offset));
-  } else {
-    rows = await db
-      .select()
-      .from(clients)
-      .orderBy(clients.createdAt)
-      .limit(Number(limit))
-      .offset(Number(offset));
-  }
+  const rows = await db
+    .select()
+    .from(clients)
+    .orderBy(clients.createdAt)
+    .limit(limit)
+    .offset(offset);
 
   return c.json({ data: rows });
 });
 
 router.get('/clients/:id', async (c) => {
-  const id = Number(c.req.param('id'));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
 
   const [client] = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
   if (!client) return c.json({ error: 'Client not found' }, 404);
@@ -181,7 +197,8 @@ router.post('/clients', zValidator('json', clientSchema), async (c) => {
 });
 
 router.put('/clients/:id', zValidator('json', clientSchema.partial()), async (c) => {
-  const id = Number(c.req.param('id'));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
   const data = c.req.valid('json');
   const [row] = await db
     .update(clients)
@@ -193,15 +210,24 @@ router.put('/clients/:id', zValidator('json', clientSchema.partial()), async (c)
 });
 
 router.delete('/clients/:id', async (c) => {
-  const id = Number(c.req.param('id'));
-  await db.delete(clients).where(eq(clients.id, id));
+  const id = parseId(c.req.param('id'));
+  if (!id) return c.json({ error: 'Invalid id' }, 400);
+  const [row] = await db.delete(clients).where(eq(clients.id, id)).returning();
+  if (!row) return c.json({ error: 'Client not found' }, 404);
   return c.json({ success: true });
 });
 
 // ─── CRM — Purchases ─────────────────────────────────────────────────────────
 
 router.post('/clients/:id/purchases', zValidator('json', purchaseSchema), async (c) => {
-  const clientId = Number(c.req.param('id'));
+  const clientId = parseId(c.req.param('id'));
+  if (!clientId) return c.json({ error: 'Invalid client id' }, 400);
+
+  // Verify the client exists before inserting — prevents orphan purchase records
+  // and ensures we return a proper 404 rather than a raw DB FK violation error
+  const [clientRow] = await db.select({ id: clients.id }).from(clients).where(eq(clients.id, clientId)).limit(1);
+  if (!clientRow) return c.json({ error: 'Client not found' }, 404);
+
   const data = c.req.valid('json');
 
   // If a productId is given, snapshot the product name/price automatically

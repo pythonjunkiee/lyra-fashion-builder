@@ -10,7 +10,9 @@ const router = new Hono();
 // ─── GET /api/products ────────────────────────────────────────────────────────
 // Query params: category (slug), featured (true), inStock (true), limit, offset
 router.get('/', async (c) => {
-  const { category, featured, inStock, limit = '50', offset = '0' } = c.req.query();
+  const { category, featured, inStock, limit: limitStr = '50', offset: offsetStr = '0' } = c.req.query();
+  const limit = Math.min(Math.max(parseInt(limitStr) || 50, 1), 100);
+  const offset = Math.max(parseInt(offsetStr) || 0, 0);
 
   const conditions = [];
 
@@ -39,8 +41,8 @@ router.get('/', async (c) => {
           ...conditions,
         ),
       )
-      .limit(Number(limit))
-      .offset(Number(offset));
+      .limit(limit)
+      .offset(offset);
   } else {
     rows = await db
       .select({
@@ -51,8 +53,8 @@ router.get('/', async (c) => {
       .from(products)
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .limit(Number(limit))
-      .offset(Number(offset));
+      .limit(limit)
+      .offset(offset);
   }
 
   const data = rows.map(({ product, categoryName, categorySlug }) => ({

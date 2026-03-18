@@ -6,6 +6,7 @@ import productsRouter from './routes/products';
 import categoriesRouter from './routes/categories';
 import uploadRouter from './routes/upload';
 import adminRouter from './routes/admin';
+import { rateLimit } from './middleware/rateLimit';
 
 const app = new Hono();
 
@@ -31,7 +32,20 @@ app.use(
   }),
 );
 
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+// Public endpoints: 60 req/min per IP
+const publicLimit = rateLimit({ windowMs: 60_000, max: 60 });
+// Admin endpoints: 120 req/min per IP (API key required; higher ceiling)
+const adminLimit = rateLimit({ windowMs: 60_000, max: 120 });
+// Upload: 20 req/min (prevents Cloudinary quota abuse)
+const uploadLimit = rateLimit({ windowMs: 60_000, max: 20 });
+
 app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.use('/api/products/*', publicLimit);
+app.use('/api/categories/*', publicLimit);
+app.use('/api/upload/*', uploadLimit);
+app.use('/api/admin/*', adminLimit);
+
 app.route('/api/products', productsRouter);
 app.route('/api/categories', categoriesRouter);
 app.route('/api/upload', uploadRouter);
