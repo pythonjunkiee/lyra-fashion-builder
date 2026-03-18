@@ -2,8 +2,8 @@
  * Seed script — populates the database with your 8 existing mock products.
  * Run with: npm run db:seed  (from the backend/ directory)
  */
-import { db } from './index.js';
-import { categories, products } from './schema.js';
+import { db } from './index';
+import { categories, products } from './schema';
 import { sql } from 'drizzle-orm';
 
 async function seed() {

@@ -2,10 +2,10 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 
-import productsRouter from './routes/products.js';
-import categoriesRouter from './routes/categories.js';
-import uploadRouter from './routes/upload.js';
-import adminRouter from './routes/admin.js';
+import productsRouter from './routes/products';
+import categoriesRouter from './routes/categories';
+import uploadRouter from './routes/upload';
+import adminRouter from './routes/admin';
 
 const app = new Hono();
 

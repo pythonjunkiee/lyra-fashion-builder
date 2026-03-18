@@ -2,8 +2,8 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, sql, and } from 'drizzle-orm';
-import { db } from '../db/index.js';
-import { products, categories } from '../db/schema.js';
+import { db } from '../db/index';
+import { products, categories } from '../db/schema';
 
 const router = new Hono();
 

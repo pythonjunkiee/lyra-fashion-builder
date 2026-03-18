@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { v2 as cloudinary } from 'cloudinary';
-import { adminAuth } from '../middleware/auth.js';
+import { adminAuth } from '../middleware/auth';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

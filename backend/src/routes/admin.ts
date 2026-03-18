@@ -6,9 +6,9 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { db } from '../db/index.js';
-import { categories, products, clients, clientPurchases } from '../db/schema.js';
-import { adminAuth } from '../middleware/auth.js';
+import { db } from '../db/index';
+import { categories, products, clients, clientPurchases } from '../db/schema';
+import { adminAuth } from '../middleware/auth';
 
 const router = new Hono();
 router.use('*', adminAuth);
