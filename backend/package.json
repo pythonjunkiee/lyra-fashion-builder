@@ -16,6 +16,7 @@
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.2",
     "@neondatabase/serverless": "^0.10.4",
+    "@vercel/node": "^5.6.16",
     "cloudinary": "^2.5.1",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.3",
