@@ -11,8 +11,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+    const body = await res.json().catch(() => ({})) as { error?: unknown; message?: string };
+    const msg =
+      typeof body.error === 'string' ? body.error :
+      typeof body.message === 'string' ? body.message :
+      body.error ? JSON.stringify(body.error) :
+      `HTTP ${res.status}`;
+    throw new Error(msg);
   }
   return res.json() as Promise<T>;
 }
@@ -150,8 +155,9 @@ export const uploadApi = {
       body: formData,
     });
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+      const body = await res.json().catch(() => ({})) as { error?: unknown };
+      const msg = typeof body.error === 'string' ? body.error : `Upload failed: HTTP ${res.status}`;
+      throw new Error(msg);
     }
     const data = await res.json() as { url: string; publicId: string };
     return data;
