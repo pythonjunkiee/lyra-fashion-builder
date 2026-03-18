@@ -61,13 +61,16 @@ export function BestSellers() {
             >
               <div className="relative overflow-hidden rounded-xl bg-card mb-4">
                 <div className="aspect-[3/4] bg-gradient-to-br from-lyra-sand to-lyra-cream flex items-center justify-center">
-                  {/* Product image placeholder */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-white/60 flex items-center justify-center">
-                      <span className="font-display text-2xl text-primary/40">L</span>
+                  {product.images[0] ? (
+                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-white/60 flex items-center justify-center">
+                        <span className="font-display text-2xl text-primary/40">L</span>
+                      </div>
+                      <p className="font-body text-xs text-muted-foreground/60">Product Image</p>
                     </div>
-                    <p className="font-body text-xs text-muted-foreground/60">Product Image</p>
-                  </div>
+                  )}
                 </div>
 
                 {/* Badge */}

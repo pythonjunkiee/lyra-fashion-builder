@@ -82,23 +82,35 @@ const ProductDetail = () => {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-br from-lyra-sand to-lyra-cream">
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white/60 flex items-center justify-center">
-                    <span className="font-display text-4xl text-primary/40">L</span>
-                  </div>
-                  <p className="font-body text-muted-foreground">Product Image</p>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="aspect-square rounded-lg bg-gradient-to-br from-lyra-sand to-lyra-cream cursor-pointer hover:ring-2 ring-primary transition-all"
+              {product.images[0] ? (
+                <img
+                  src={product.images[0]}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
                 />
-              ))}
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white/60 flex items-center justify-center">
+                      <span className="font-display text-4xl text-primary/40">L</span>
+                    </div>
+                    <p className="font-body text-muted-foreground">Product Image</p>
+                  </div>
+                </div>
+              )}
             </div>
+            {product.images.length > 1 && (
+              <div className="grid grid-cols-4 gap-4">
+                {product.images.slice(0, 4).map((img, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-lyra-sand to-lyra-cream cursor-pointer hover:ring-2 ring-primary transition-all"
+                  >
+                    <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -325,7 +337,9 @@ const ProductDetail = () => {
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((p) => (
                 <Link key={p.id} to={`/product/${p.slug}`} className="group lyra-product-card">
-                  <div className="aspect-[3/4] rounded-xl bg-gradient-to-br from-lyra-sand to-lyra-cream mb-4" />
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-br from-lyra-sand to-lyra-cream mb-4">
+                    {p.images[0] && <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />}
+                  </div>
                   <h3 className="font-display text-base font-medium line-clamp-2 group-hover:text-primary transition-colors">
                     {p.name}
                   </h3>
