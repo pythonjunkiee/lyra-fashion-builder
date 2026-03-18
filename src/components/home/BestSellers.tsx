@@ -2,10 +2,26 @@ import { Link } from "react-router-dom";
 import { Heart, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { sampleProducts } from "@/types/product";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProducts } from "@/hooks/useProducts";
+import { useCart } from "@/context/CartContext";
+import type { ApiProduct } from "@/lib/api";
 
 export function BestSellers() {
-  const featuredProducts = sampleProducts.filter((p) => p.featured).slice(0, 4);
+  const { data: products, isLoading } = useProducts({ featured: true });
+  const { addItem } = useCart();
+  const featuredProducts = products?.slice(0, 4) ?? [];
+
+  const handleQuickAdd = (e: React.MouseEvent, product: ApiProduct) => {
+    e.preventDefault();
+    addItem({
+      product,
+      quantity: 1,
+      selectedSize: product.sizes[0] ?? 'One Size',
+      selectedColor: product.colors[0] ?? '',
+      stitchingAdded: false,
+    });
+  };
 
   return (
     <section className="py-16 md:py-24 bg-lyra-cream/50">
@@ -28,7 +44,15 @@ export function BestSellers() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product, index) => (
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))
+            : featuredProducts.map((product: ApiProduct, index: number) => (
             <Link
               key={product.id}
               to={`/product/${product.slug}`}
@@ -83,10 +107,7 @@ export function BestSellers() {
                   <Button
                     size="sm"
                     className="w-full bg-primary/90 hover:bg-primary text-primary-foreground font-body"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // Quick add to cart
-                    }}
+                    onClick={(e) => handleQuickAdd(e, product)}
                   >
                     <ShoppingBag className="mr-2 h-4 w-4" />
                     Quick Add

@@ -8,14 +8,18 @@ import ShopMukhawar from "./pages/ShopMukhawar";
 import ProductDetail from "./pages/ProductDetail";
 import StitchStyle from "./pages/StitchStyle";
 import NotFound from "./pages/NotFound";
+import { CartProvider } from "./context/CartContext";
+import { CartDrawer } from "./components/cart/CartDrawer";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <CartProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <CartDrawer />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -32,6 +36,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </CartProvider>
   </QueryClientProvider>
 );
 

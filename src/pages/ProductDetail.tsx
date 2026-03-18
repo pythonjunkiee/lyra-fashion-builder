@@ -4,7 +4,9 @@ import { Heart, ShoppingBag, Minus, Plus, Truck, RotateCcw, Ruler, Scissors, Che
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { sampleProducts } from "@/types/product";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProduct, useProducts } from "@/hooks/useProducts";
+import { useCart } from "@/context/CartContext";
 import {
   Accordion,
   AccordionContent,
@@ -13,19 +15,56 @@ import {
 } from "@/components/ui/accordion";
 
 const ProductDetail = () => {
-  const { slug } = useParams();
-  const product = sampleProducts.find((p) => p.slug === slug) || sampleProducts[0];
+  const { slug } = useParams<{ slug: string }>();
+  const { data: product, isLoading, isError } = useProduct(slug ?? "");
+  const { data: categoryProducts = [] } = useProducts({
+    category: product?.category ?? undefined,
+  });
 
+  const relatedProducts = categoryProducts
+    .filter((p) => p.id !== product?.id)
+    .slice(0, 4);
+
+  const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [addStitching, setAddStitching] = useState(false);
 
   const stitchingPrice = 40;
-  const totalPrice = (product.price + (addStitching ? stitchingPrice : 0)) * quantity;
+  const totalPrice = product
+    ? (parseFloat(product.price) + (addStitching ? stitchingPrice : 0)) * quantity
+    : 0;
 
-  const relatedProducts = sampleProducts
-    .filter((p) => p.id !== product.id && p.category === product.category)
-    .slice(0, 4);
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container py-8">
+          <div className="grid lg:grid-cols-2 gap-12">
+            <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+            <div className="space-y-6">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isError || !product) {
+    return (
+      <Layout>
+        <div className="container py-16 text-center">
+          <p className="font-display text-xl text-muted-foreground mb-4">Product not found</p>
+          <Link to="/shop/mukhawar">
+            <Button variant="outline" className="font-body">Back to Shop</Button>
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -52,7 +91,6 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
-            {/* Thumbnails */}
             <div className="grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
@@ -65,7 +103,6 @@ const ProductDetail = () => {
 
           {/* Product Info */}
           <div className="space-y-6">
-            {/* Badge & Title */}
             <div>
               {product.badge && (
                 <Badge
@@ -123,10 +160,7 @@ const ProductDetail = () => {
               </span>
               <div className="flex gap-2">
                 {product.colors.map((color, i) => (
-                  <div
-                    key={i}
-                    className="px-3 py-1.5 rounded-full border border-border font-body text-sm"
-                  >
+                  <div key={i} className="px-3 py-1.5 rounded-full border border-border font-body text-sm">
                     {color}
                   </div>
                 ))}
@@ -162,9 +196,7 @@ const ProductDetail = () => {
             {/* Stitch & Style Option */}
             <div
               className={`p-4 rounded-xl border-2 transition-colors cursor-pointer ${
-                addStitching
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
+                addStitching ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
               }`}
               onClick={() => setAddStitching(!addStitching)}
             >
@@ -210,9 +242,19 @@ const ProductDetail = () => {
                 size="lg"
                 className="flex-1 bg-primary hover:bg-primary/90 font-body tracking-wide"
                 disabled={!selectedSize}
+                onClick={() => {
+                  if (!product || !selectedSize) return;
+                  addItem({
+                    product,
+                    quantity,
+                    selectedSize,
+                    selectedColor: product.colors[0] ?? '',
+                    stitchingAdded: addStitching,
+                  });
+                }}
               >
                 <ShoppingBag className="mr-2 h-5 w-5" />
-                Add to Bag – AED {totalPrice}
+                Add to Bag – AED {totalPrice.toFixed(2)}
               </Button>
               <Button size="lg" variant="outline">
                 <Heart className="h-5 w-5" />
@@ -237,7 +279,7 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Product Details Accordion */}
+            {/* Accordion */}
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="description">
                 <AccordionTrigger className="font-display text-lg">Description</AccordionTrigger>
@@ -265,7 +307,7 @@ const ProductDetail = () => {
                     <strong>Shipping:</strong> Free delivery on orders over AED 300. Standard delivery 2-4 business days.
                   </p>
                   <p>
-                    <strong>Returns:</strong> We offer 14-day returns on unworn items with tags attached. 
+                    <strong>Returns:</strong> We offer 14-day returns on unworn items with tags attached.
                     Stitched items are final sale.
                   </p>
                 </AccordionContent>
@@ -282,11 +324,7 @@ const ProductDetail = () => {
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((p) => (
-                <Link
-                  key={p.id}
-                  to={`/product/${p.slug}`}
-                  className="group lyra-product-card"
-                >
+                <Link key={p.id} to={`/product/${p.slug}`} className="group lyra-product-card">
                   <div className="aspect-[3/4] rounded-xl bg-gradient-to-br from-lyra-sand to-lyra-cream mb-4" />
                   <h3 className="font-display text-base font-medium line-clamp-2 group-hover:text-primary transition-colors">
                     {p.name}

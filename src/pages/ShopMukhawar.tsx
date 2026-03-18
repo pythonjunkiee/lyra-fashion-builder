@@ -4,6 +4,7 @@ import { Heart, ShoppingBag, SlidersHorizontal, Grid3X3, LayoutGrid, X } from "l
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -19,7 +20,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
-import { sampleProducts, Product } from "@/types/product";
+import { useProducts } from "@/hooks/useProducts";
+import { useCart } from "@/context/CartContext";
+import type { ApiProduct } from "@/lib/api";
 
 const colorFilters = ["Desert Rose", "Midnight Teal", "Champagne", "Soft Blush", "Ocean Blue", "Emerald Green"];
 const sizeFilters = ["S", "M", "L", "XL"];
@@ -30,7 +33,20 @@ const priceRanges = [
   { label: "Over AED 400", min: 400, max: 10000 },
 ];
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product }: { product: ApiProduct }) {
+  const { addItem } = useCart();
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addItem({
+      product,
+      quantity: 1,
+      selectedSize: product.sizes[0] ?? 'One Size',
+      selectedColor: product.colors[0] ?? '',
+      stitchingAdded: false,
+    });
+  };
+
   return (
     <Link
       to={`/product/${product.slug}`}
@@ -77,7 +93,7 @@ function ProductCard({ product }: { product: Product }) {
           <Button
             size="sm"
             className="w-full bg-primary/90 hover:bg-primary text-primary-foreground font-body"
-            onClick={(e) => e.preventDefault()}
+            onClick={handleQuickAdd}
           >
             <ShoppingBag className="mr-2 h-4 w-4" />
             Quick Add
@@ -114,8 +130,8 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-function FilterSidebar({ 
-  selectedColors, 
+function FilterSidebar({
+  selectedColors,
   setSelectedColors,
   selectedSizes,
   setSelectedSizes,
@@ -147,7 +163,6 @@ function FilterSidebar({
 
   return (
     <div className="space-y-8">
-      {/* Price */}
       <div>
         <h4 className="font-display text-lg font-medium mb-4">Price</h4>
         <div className="space-y-3">
@@ -166,7 +181,6 @@ function FilterSidebar({
         </div>
       </div>
 
-      {/* Size */}
       <div>
         <h4 className="font-display text-lg font-medium mb-4">Size</h4>
         <div className="flex flex-wrap gap-2">
@@ -186,7 +200,6 @@ function FilterSidebar({
         </div>
       </div>
 
-      {/* Color */}
       <div>
         <h4 className="font-display text-lg font-medium mb-4">Color</h4>
         <div className="space-y-3">
@@ -215,12 +228,14 @@ const ShopMukhawar = () => {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
 
-  // Filter products
-  const filteredProducts = sampleProducts.filter((product) => {
+  const { data: allProducts = [], isLoading } = useProducts();
+
+  // Filter — same logic as before, adapted for ApiProduct (price is a string)
+  const filteredProducts = allProducts.filter((product) => {
     if (product.category !== "mukhawar" && product.category !== "premium") return false;
-    
+
     if (selectedColors.length > 0) {
-      const hasMatchingColor = product.colors.some((c) => 
+      const hasMatchingColor = product.colors.some((c) =>
         selectedColors.some((sc) => c.toLowerCase().includes(sc.toLowerCase()))
       );
       if (!hasMatchingColor) return false;
@@ -233,19 +248,20 @@ const ShopMukhawar = () => {
 
     if (selectedPriceRange !== null) {
       const range = priceRanges[selectedPriceRange];
-      if (product.price < range.min || product.price > range.max) return false;
+      const price = parseFloat(product.price);
+      if (price < range.min || price > range.max) return false;
     }
 
     return true;
   });
 
-  // Sort products
+  // Sort
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case "price-low":
-        return a.price - b.price;
+        return parseFloat(a.price) - parseFloat(b.price);
       case "price-high":
-        return b.price - a.price;
+        return parseFloat(b.price) - parseFloat(a.price);
       case "newest":
         return a.badge === "NEW" ? -1 : 1;
       default:
@@ -263,7 +279,6 @@ const ShopMukhawar = () => {
 
   return (
     <Layout>
-      {/* Header */}
       <section className="bg-lyra-cream/50 py-12">
         <div className="container">
           <nav className="font-body text-sm text-muted-foreground mb-4">
@@ -275,18 +290,16 @@ const ShopMukhawar = () => {
             Mukhawar Collection
           </h1>
           <p className="font-body text-muted-foreground max-w-2xl">
-            Discover our signature Mukhawars, each piece crafted from 100% premium cotton with 
+            Discover our signature Mukhawars, each piece crafted from 100% premium cotton with
             intricate embroidery. From everyday elegance to special occasions, find your perfect fit.
           </p>
         </div>
       </section>
 
-      {/* Toolbar */}
       <section className="border-b border-border sticky top-[104px] bg-background z-40">
         <div className="container py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {/* Mobile filter button */}
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="lg:hidden font-body">
@@ -317,16 +330,11 @@ const ShopMukhawar = () => {
               </Sheet>
 
               <span className="font-body text-sm text-muted-foreground hidden sm:inline">
-                {sortedProducts.length} products
+                {isLoading ? "Loading..." : `${sortedProducts.length} products`}
               </span>
 
               {activeFiltersCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="font-body text-sm"
-                >
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="font-body text-sm">
                   Clear all
                   <X className="ml-1 h-3 w-3" />
                 </Button>
@@ -334,7 +342,6 @@ const ShopMukhawar = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Grid toggle */}
               <div className="hidden sm:flex items-center border rounded-md">
                 <button
                   onClick={() => setGridView("grid")}
@@ -350,7 +357,6 @@ const ShopMukhawar = () => {
                 </button>
               </div>
 
-              {/* Sort */}
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[180px] font-body">
                   <SelectValue placeholder="Sort by" />
@@ -367,11 +373,9 @@ const ShopMukhawar = () => {
         </div>
       </section>
 
-      {/* Main content */}
       <section className="py-8">
         <div className="container">
           <div className="flex gap-8">
-            {/* Desktop sidebar */}
             <aside className="hidden lg:block w-64 flex-shrink-0">
               <FilterSidebar
                 selectedColors={selectedColors}
@@ -383,9 +387,18 @@ const ShopMukhawar = () => {
               />
             </aside>
 
-            {/* Product grid */}
             <div className="flex-1">
-              {sortedProducts.length === 0 ? (
+              {isLoading ? (
+                <div className={`grid gap-6 ${gridView === "grid" ? "sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="space-y-4">
+                      <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : sortedProducts.length === 0 ? (
                 <div className="text-center py-16">
                   <p className="font-display text-xl text-muted-foreground mb-4">
                     No products match your filters
@@ -396,8 +409,8 @@ const ShopMukhawar = () => {
                 </div>
               ) : (
                 <div className={`grid gap-6 ${
-                  gridView === "grid" 
-                    ? "sm:grid-cols-2 xl:grid-cols-3" 
+                  gridView === "grid"
+                    ? "sm:grid-cols-2 xl:grid-cols-3"
                     : "grid-cols-1"
                 }`}>
                   {sortedProducts.map((product) => (
