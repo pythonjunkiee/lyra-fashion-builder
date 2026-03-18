@@ -1,11 +1,24 @@
+/**
+ * API client for the Lyra CRM.
+ *
+ * The admin API key is NEVER read from import.meta.env (which embeds it in the
+ * JS bundle). Instead, getApiKey() reads it from sessionStorage at call-time —
+ * it is set only after the user authenticates through the Login page.
+ */
+
 const BASE = import.meta.env.VITE_API_URL as string;
-const API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string;
+
+const SESSION_KEY = 'lyra_admin_key';
+
+function getApiKey(): string {
+  return sessionStorage.getItem(SESSION_KEY) ?? '';
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
+      'x-api-key': getApiKey(),
       ...init?.headers,
     },
     ...init,
@@ -151,7 +164,7 @@ export const uploadApi = {
     formData.append('file', file);
     const res = await fetch(`${BASE}/upload`, {
       method: 'POST',
-      headers: { 'x-api-key': API_KEY },
+      headers: { 'x-api-key': getApiKey() },
       body: formData,
     });
     if (!res.ok) {

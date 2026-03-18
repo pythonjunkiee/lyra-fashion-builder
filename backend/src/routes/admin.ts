@@ -48,7 +48,19 @@ const productSchema = z.object({
   shortDescription: z.string().optional(),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Price must be a decimal number e.g. "295.00"'),
   compareAtPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).optional().nullable(),
-  images: z.array(z.string().url()).default([]),
+  images: z.array(
+    z.string().url().refine(
+      (url) => {
+        try {
+          const { hostname } = new URL(url);
+          return hostname === 'res.cloudinary.com' || hostname.endsWith('.cloudinary.com');
+        } catch {
+          return false;
+        }
+      },
+      { message: 'Image URLs must be hosted on res.cloudinary.com.' },
+    )
+  ).default([]),
   fabric: z.string().optional(),
   embroideryType: z.string().optional(),
   colors: z.array(z.string()).default([]),

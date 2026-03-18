@@ -1,13 +1,17 @@
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom'
-import { Users, LayoutDashboard, ShoppingBag, UserPlus, Package, PackagePlus } from 'lucide-react'
-import Dashboard from './pages/Dashboard'
-import ClientList from './pages/ClientList'
-import ClientDetail from './pages/ClientDetail'
-import NewClientPage from './pages/NewClient'
-import Products from './pages/Products'
-import ProductForm from './pages/ProductForm'
+import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { Users, LayoutDashboard, ShoppingBag, UserPlus, Package, PackagePlus, LogOut } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import ClientList from './pages/ClientList';
+import ClientDetail from './pages/ClientDetail';
+import NewClientPage from './pages/NewClient';
+import Products from './pages/Products';
+import ProductForm from './pages/ProductForm';
 
 function Sidebar() {
+  const { logout } = useAuth();
+
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -42,11 +46,34 @@ function Sidebar() {
           <PackagePlus size={16} /> Add Product
         </NavLink>
       </nav>
+
+      <button
+        onClick={logout}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '12px 20px',
+          color: '#a09b96', fontSize: 14,
+          background: 'none', border: 'none', cursor: 'pointer',
+          borderTop: '1px solid #2e2b28',
+          width: '100%', textAlign: 'left',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#e8e4df'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#a09b96'; }}
+      >
+        <LogOut size={16} /> Sign Out
+      </button>
     </aside>
-  )
+  );
 }
 
 export default function App() {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
   return (
     <div className="crm-layout">
       <Sidebar />
@@ -64,5 +91,5 @@ export default function App() {
         </Routes>
       </main>
     </div>
-  )
+  );
 }

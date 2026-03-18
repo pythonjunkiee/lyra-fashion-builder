@@ -11,20 +11,22 @@ import { rateLimit } from './middleware/rateLimit';
 const app = new Hono();
 
 app.use('*', logger());
+// Explicit allowlist — no wildcard subdomains. Any attacker Vercel project
+// (evil.vercel.app) will receive null and the browser will block the request.
+const ALLOWED_ORIGINS = new Set([
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:8080',
+  'http://localhost:3000',
+  'https://lyra-fashion.vercel.app',          // main storefront
+  'https://lyra-fashion-builder.vercel.app',  // CRM
+]);
+
 app.use(
   '*',
   cors({
     origin: (origin) => {
-      const allowed = [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://localhost:8080',
-        'http://localhost:3000',
-        'https://lyra-fashion.vercel.app',
-      ];
-      if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
-        return origin ?? '*';
-      }
+      if (!origin || ALLOWED_ORIGINS.has(origin)) return origin ?? '*';
       return null;
     },
     allowHeaders: ['Content-Type', 'x-api-key'],
