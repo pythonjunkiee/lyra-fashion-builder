@@ -9,6 +9,8 @@ export default function Products() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [confirmDelete, setConfirmDelete] = useState<Product | null>(null)
+  // stockEdit: { id, value } tracks which row is being inline-edited
+  const [stockEdit, setStockEdit] = useState<{ id: number; value: string } | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['products'],
@@ -22,6 +24,21 @@ export default function Products() {
       setConfirmDelete(null)
     },
   })
+
+  const stockMutation = useMutation({
+    mutationFn: ({ id, qty }: { id: number; qty: number }) =>
+      productsApi.update(id, { stockQuantity: qty, inStock: qty > 0 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      setStockEdit(null)
+    },
+  })
+
+  const saveStock = (productId: number) => {
+    const qty = parseInt(stockEdit?.value ?? '', 10)
+    if (isNaN(qty) || qty < 0) return
+    stockMutation.mutate({ id: productId, qty })
+  }
 
   const products = (data?.data ?? []).filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -106,13 +123,58 @@ export default function Products() {
                     )}
                   </td>
                   <td>
-                    <span style={{
-                      fontSize: 12, padding: '2px 8px', borderRadius: 20,
-                      background: product.inStock ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                      color: product.inStock ? '#22c55e' : '#ef4444',
-                    }}>
-                      {product.inStock ? `In Stock (${product.stockQuantity})` : 'Out of Stock'}
-                    </span>
+                    {stockEdit?.id === product.id ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <input
+                          type="number"
+                          min={0}
+                          value={stockEdit.value}
+                          onChange={(e) => setStockEdit({ id: product.id, value: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveStock(product.id)
+                            if (e.key === 'Escape') setStockEdit(null)
+                          }}
+                          autoFocus
+                          style={{
+                            width: 64, padding: '3px 8px', fontSize: 13,
+                            border: '1px solid var(--border)', borderRadius: 6,
+                            background: 'var(--surface)', color: 'var(--text-primary)',
+                          }}
+                        />
+                        <button
+                          className="btn btn-primary"
+                          style={{ padding: '3px 10px', fontSize: 12 }}
+                          disabled={stockMutation.isPending}
+                          onClick={() => saveStock(product.id)}
+                        >
+                          {stockMutation.isPending ? '…' : 'Save'}
+                        </button>
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '3px 8px', fontSize: 12 }}
+                          onClick={() => setStockEdit(null)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setStockEdit({ id: product.id, value: String(product.stockQuantity) })}
+                        title="Click to update stock"
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                        }}
+                      >
+                        <span style={{
+                          fontSize: 12, padding: '2px 8px', borderRadius: 20,
+                          background: product.inStock ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: product.inStock ? '#22c55e' : '#ef4444',
+                          textDecoration: 'underline dotted',
+                        }}>
+                          {product.inStock ? `In Stock (${product.stockQuantity})` : 'Out of Stock'}
+                        </span>
+                      </button>
+                    )}
                   </td>
                   <td>
                     {product.badge ? (

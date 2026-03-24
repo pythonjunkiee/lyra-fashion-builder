@@ -160,14 +160,9 @@ router.put('/products/:id', zValidator('json', productSchema.partial()), async (
 router.delete('/products/:id', async (c) => {
   const id = parseId(c.req.param('id'));
   if (!id) return c.json({ error: 'Invalid id' }, 400);
-  // Soft delete — mark out of stock rather than permanently deleting
-  const [row] = await db
-    .update(products)
-    .set({ inStock: false, stockQuantity: 0, updatedAt: new Date() })
-    .where(eq(products.id, id))
-    .returning();
+  const [row] = await db.delete(products).where(eq(products.id, id)).returning();
   if (!row) return c.json({ error: 'Product not found' }, 404);
-  return c.json({ data: row });
+  return c.json({ success: true });
 });
 
 // ─── CRM — Clients ────────────────────────────────────────────────────────────
