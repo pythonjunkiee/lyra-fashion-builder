@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Heart, ShoppingBag, SlidersHorizontal, Grid3X3, LayoutGrid, X } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -225,7 +225,37 @@ function FilterSidebar({
   );
 }
 
+const categoryMeta: Record<string, { title: string; breadcrumb: string; description: string }> = {
+  mukhawar: {
+    title: "Mukhawar Collection",
+    breadcrumb: "Mukhawar",
+    description:
+      "Discover our signature Mukhawars, each piece crafted from 100% premium cotton with intricate embroidery. From everyday elegance to special occasions, find your perfect fit.",
+  },
+  shaila: {
+    title: "Matching Shaila",
+    breadcrumb: "Matching Shaila",
+    description:
+      "Complete your look with our elegant Shailas, thoughtfully designed to pair beautifully with every Mukhawar in our collection.",
+  },
+  kids: {
+    title: "Little Lyra",
+    breadcrumb: "Little Lyra",
+    description:
+      "Beautiful, comfortable pieces made especially for little ones — the same quality craftsmanship your family deserves.",
+  },
+  premium: {
+    title: "Premium Edit",
+    breadcrumb: "Premium Edit",
+    description:
+      "Handcrafted limited-edition pieces for those who appreciate the finest fabrics and exclusive embroidery.",
+  },
+};
+
 const ShopMukhawar = () => {
+  const { category = "mukhawar" } = useParams<{ category: string }>();
+  const meta = categoryMeta[category] ?? categoryMeta["mukhawar"];
+
   const [sortBy, setSortBy] = useState("featured");
   const [gridView, setGridView] = useState<"grid" | "list">("grid");
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -234,9 +264,9 @@ const ShopMukhawar = () => {
 
   const { data: allProducts = [], isLoading } = useProducts();
 
-  // Filter — same logic as before, adapted for ApiProduct (price is a string)
+  // Filter products by the current category from the URL
   const filteredProducts = allProducts.filter((product) => {
-    if (product.category !== "mukhawar" && product.category !== "premium") return false;
+    if (product.category !== category) return false;
 
     if (selectedColors.length > 0) {
       const hasMatchingColor = product.colors.some((c) =>
@@ -288,14 +318,13 @@ const ShopMukhawar = () => {
           <nav className="font-body text-sm text-muted-foreground mb-4">
             <Link to="/" className="hover:text-primary">Home</Link>
             <span className="mx-2">/</span>
-            <span className="text-foreground">Mukhawar</span>
+            <span className="text-foreground">{meta.breadcrumb}</span>
           </nav>
           <h1 className="font-display text-3xl md:text-4xl font-medium mb-4">
-            Mukhawar Collection
+            {meta.title}
           </h1>
           <p className="font-body text-muted-foreground max-w-2xl">
-            Discover our signature Mukhawars, each piece crafted from 100% premium cotton with
-            intricate embroidery. From everyday elegance to special occasions, find your perfect fit.
+            {meta.description}
           </p>
         </div>
       </section>

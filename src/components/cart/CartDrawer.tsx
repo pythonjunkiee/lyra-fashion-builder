@@ -1,10 +1,17 @@
+import { useEffect } from 'react';
 import { X, Minus, Plus, Trash2, ShoppingBag, Scissors } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useCart, STITCHING_PRICE } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 
 export function CartDrawer() {
   const { state, closeCart, removeItem, updateQty, toggleStitching, subtotal, itemCount } = useCart();
+  const location = useLocation();
+
+  // Close cart on any route change
+  useEffect(() => {
+    closeCart();
+  }, [location.pathname]);
 
   if (!state.isOpen) return null;
 
@@ -170,9 +177,13 @@ export function CartDrawer() {
             <Button
               size="lg"
               className="w-full bg-primary hover:bg-primary/90 font-body tracking-wide"
+              asChild
+              onClick={closeCart}
             >
-              <ShoppingBag className="mr-2 h-5 w-5" />
-              Proceed to Checkout
+              <Link to="/checkout">
+                <ShoppingBag className="mr-2 h-5 w-5" />
+                Proceed to Checkout
+              </Link>
             </Button>
             <Button
               variant="outline"

@@ -26,7 +26,7 @@ export default function Login() {
       });
 
       if (res.status === 401 || res.status === 429) {
-        setError('Invalid API key. Please check and try again.');
+        setError('Incorrect password. Please try again.');
         setLoading(false);
         return;
       }
@@ -74,19 +74,19 @@ export default function Login() {
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#d4a853', letterSpacing: 3, marginBottom: 4 }}>
             LYRA
           </h1>
-          <p style={{ fontSize: 13, color: '#7a7570' }}>CRM Dashboard — Admin Access</p>
+          <p style={{ fontSize: 13, color: '#7a7570' }}>CRM Dashboard — Sign in to continue</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="apikey">Admin API Key</label>
+            <label htmlFor="password">Password</label>
             <div style={{ position: 'relative' }}>
               <input
-                id="apikey"
+                id="password"
                 type={show ? 'text' : 'password'}
                 value={key}
                 onChange={(e) => { setKey(e.target.value); setError(''); }}
-                placeholder="Paste your admin API key"
+                placeholder="Enter your password"
                 style={{ width: '100%', paddingRight: 44 }}
                 autoComplete="current-password"
                 autoFocus
@@ -131,7 +131,7 @@ export default function Login() {
         </form>
 
         <p style={{ fontSize: 12, color: '#a09b96', textAlign: 'center', marginTop: 20 }}>
-          Your key is stored only in this browser session and cleared when you close the tab.
+          Your session is stored in this browser tab only and clears when you close it.
         </p>
       </div>
     </div>

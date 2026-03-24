@@ -27,18 +27,45 @@ import { cn } from "@/lib/utils";
 import { useSearch } from "@/hooks/useSearch";
 import { useCart } from "@/context/CartContext";
 
-const shopCategories = [
-  { name: "Mukhawar", href: "/shop/mukhawar", description: "Premium cotton Mukhawars for every occasion" },
-  { name: "Matching Shaila", href: "/shop/shaila", description: "Elegant shailas to complete your look" },
-  { name: "Little Lyra", href: "/shop/kids", description: "Beautiful pieces for little ones" },
-  { name: "Premium Edit", href: "/shop/premium", description: "Handcrafted limited editions" },
-];
-
+// Collections are the primary grouping; each contains its relevant categories
 const collections = [
-  { name: "Everyday Essentials", href: "/collections/everyday" },
-  { name: "Special Occasions", href: "/collections/special" },
-  { name: "Wedding Season", href: "/collections/wedding" },
-  { name: "Ramadan Edit", href: "/collections/ramadan" },
+  {
+    name: "Everyday Essentials",
+    href: "/collections/everyday",
+    description: "Comfortable, everyday pieces for every moment",
+    categories: [
+      { name: "Mukhawar", href: "/shop/mukhawar" },
+      { name: "Matching Shaila", href: "/shop/shaila" },
+    ],
+  },
+  {
+    name: "Special Occasions",
+    href: "/collections/special",
+    description: "Elevated pieces for celebrations and gatherings",
+    categories: [
+      { name: "Mukhawar", href: "/shop/mukhawar" },
+      { name: "Premium Edit", href: "/shop/premium" },
+    ],
+  },
+  {
+    name: "Wedding Season",
+    href: "/collections/wedding",
+    description: "Bridal-inspired elegance from our finest fabrics",
+    categories: [
+      { name: "Matching Shaila", href: "/shop/shaila" },
+      { name: "Premium Edit", href: "/shop/premium" },
+    ],
+  },
+  {
+    name: "Ramadan Edit",
+    href: "/collections/ramadan",
+    description: "Modest, beautiful pieces for the holy month",
+    categories: [
+      { name: "Mukhawar", href: "/shop/mukhawar" },
+      { name: "Little Lyra", href: "/shop/kids" },
+      { name: "Matching Shaila", href: "/shop/shaila" },
+    ],
+  },
 ];
 
 function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -172,16 +199,34 @@ export function Header() {
             <SheetHeader>
               <SheetTitle className="font-display text-xl">Menu</SheetTitle>
             </SheetHeader>
-            <nav className="mt-8 flex flex-col space-y-4">
-              <Link to="/shop/mukhawar" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Shop Mukhawar</Link>
-              <Link to="/shop/shaila" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Matching Shaila</Link>
-              <Link to="/shop/kids" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Little Lyra</Link>
-              <Link to="/shop/premium" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Premium Edit</Link>
-              <div className="lyra-divider my-4" />
-              <Link to="/collections" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Collections</Link>
-              <Link to="/stitch-style" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Stitch & Style</Link>
-              <Link to="/about" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>About Lyra</Link>
-              <Link to="/stores" className="font-display text-lg hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Store Locator</Link>
+            <nav className="mt-6 flex flex-col">
+              {/* Collections with categories nested beneath */}
+              {collections.map((collection) => (
+                <div key={collection.name} className="mb-4">
+                  <Link
+                    to={collection.href}
+                    className="font-display text-base font-semibold hover:text-primary transition-colors block mb-1"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {collection.name}
+                  </Link>
+                  <div className="pl-3 flex flex-col gap-0.5 border-l border-border">
+                    {collection.categories.map((cat) => (
+                      <Link
+                        key={cat.name}
+                        to={cat.href}
+                        className="font-body text-sm text-muted-foreground hover:text-primary transition-colors py-0.5"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div className="lyra-divider my-3" />
+              <Link to="/stitch-style" className="font-display text-base hover:text-primary transition-colors py-1" onClick={() => setMobileMenuOpen(false)}>Stitch & Style</Link>
+              <Link to="/about" className="font-display text-base hover:text-primary transition-colors py-1" onClick={() => setMobileMenuOpen(false)}>About Lyra</Link>
             </nav>
           </SheetContent>
         </Sheet>
@@ -196,45 +241,39 @@ export function Header() {
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuTrigger className="font-body">Shop</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                  {shopCategories.map((category) => (
-                    <li key={category.name}>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to={category.href}
-                          className={cn(
-                            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          )}
-                        >
-                          <div className="font-display text-sm font-medium leading-none">{category.name}</div>
-                          <p className="font-body line-clamp-2 text-sm leading-snug text-muted-foreground">{category.description}</p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
               <NavigationMenuTrigger className="font-body">Collections</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[200px] gap-2 p-4">
+                {/* Mega-menu: each column = one collection with its categories beneath */}
+                <div className="grid w-[600px] grid-cols-4 gap-0 p-4">
                   {collections.map((collection) => (
-                    <li key={collection.name}>
+                    <div key={collection.name} className="px-2">
+                      {/* Collection header — links to its own page */}
                       <NavigationMenuLink asChild>
                         <Link
                           to={collection.href}
-                          className="block select-none rounded-md p-2 text-sm font-body leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          className="block font-display text-sm font-semibold text-foreground hover:text-primary transition-colors mb-2 leading-snug"
                         >
                           {collection.name}
                         </Link>
                       </NavigationMenuLink>
-                    </li>
+                      {/* Categories under this collection */}
+                      <ul className="space-y-1">
+                        {collection.categories.map((cat) => (
+                          <li key={cat.name}>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={cat.href}
+                                className="block font-body text-xs text-muted-foreground hover:text-primary transition-colors py-0.5"
+                              >
+                                {cat.name}
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </NavigationMenuContent>
             </NavigationMenuItem>
 

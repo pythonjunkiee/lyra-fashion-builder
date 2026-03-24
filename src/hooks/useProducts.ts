@@ -12,7 +12,7 @@ export function useProducts(filters?: ProductFilters) {
     queryKey: ['products', filters],
     queryFn: () => productsApi.list(filters),
     select: (res) => res.data,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // always refetch fresh — ensures CRM deletions/edits appear immediately
   });
 }
 
@@ -28,6 +28,6 @@ export function useProduct(slug: string) {
     queryFn: () => productsApi.get(slug),
     select: (res) => res.data,
     enabled: !!slug,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 }
