@@ -5,21 +5,18 @@ const categories = [
   {
     title: "For Everyday Elegance",
     description: "Comfortable Mukhawars for daily wear",
-    image: "/placeholder.svg",
     href: "/collections/everyday",
     color: "from-lyra-sand to-lyra-cream",
   },
   {
     title: "For Special Occasions",
     description: "Statement pieces that celebrate",
-    image: "/placeholder.svg",
     href: "/collections/special",
     color: "from-lyra-rose/30 to-lyra-cream",
   },
   {
     title: "For Your Little Ones",
     description: "Little Lyra collection for kids",
-    image: "/placeholder.svg",
     href: "/shop/kids",
     color: "from-lyra-gold/20 to-lyra-cream",
   },
