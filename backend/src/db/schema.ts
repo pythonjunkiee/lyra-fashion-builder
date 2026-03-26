@@ -58,6 +58,20 @@ export const products = pgTable('products', {
   featuredIdx: index('idx_products_featured').on(t.featured),
 }));
 
+// ─── Customer Accounts ────────────────────────────────────────────────────────
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  email: varchar('email', { length: 255 }).notNull(),
+  passwordHash: text('password_hash').notNull(),
+  firstName: varchar('first_name', { length: 100 }).notNull(),
+  lastName: varchar('last_name', { length: 100 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (t) => ({
+  emailUnique: uniqueIndex('idx_users_email').on(t.email),
+}));
+
 // ─── CRM ──────────────────────────────────────────────────────────────────────
 
 export const clients = pgTable('clients', {
@@ -133,3 +147,5 @@ export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
 export type ClientPurchase = typeof clientPurchases.$inferSelect;
 export type NewClientPurchase = typeof clientPurchases.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;

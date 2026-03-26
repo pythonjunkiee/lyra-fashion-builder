@@ -12,13 +12,17 @@ import CheckoutAuth from "./pages/CheckoutAuth";
 import CollectionPage from "./pages/CollectionPage";
 import NotFound from "./pages/NotFound";
 import { CartProvider } from "./context/CartContext";
+import { CustomerAuthProvider } from "./context/CustomerAuthContext";
 import { CartDrawer } from "./components/cart/CartDrawer";
 import { ScrollToTop } from "./components/ScrollToTop";
+import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <CustomerAuthProvider>
     <CartProvider>
     <TooltipProvider>
       <Toaster />
@@ -32,6 +36,8 @@ const App = () => (
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/stitch-style" element={<StitchStyle />} />
           <Route path="/about" element={<AboutUs />} />
+          <Route path="/account" element={<AuthPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/checkout" element={<CheckoutAuth />} />
           <Route path="/collections/:slug" element={<CollectionPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -40,6 +46,7 @@ const App = () => (
         </BrowserRouter>
     </TooltipProvider>
     </CartProvider>
+    </CustomerAuthProvider>
   </QueryClientProvider>
 );
 

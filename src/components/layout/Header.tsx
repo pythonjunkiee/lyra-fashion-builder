@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 import { Menu, X, Search, ShoppingBag, User, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -175,6 +176,16 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { itemCount, openCart } = useCart();
+  const { user } = useCustomerAuth();
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    if (user) {
+      navigate('/profile');
+    } else {
+      navigate('/account', { state: { from: '/profile' } });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -306,8 +317,17 @@ export function Header() {
             <Heart className="h-5 w-5" />
             <span className="sr-only">Wishlist</span>
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleProfileClick}
+            className="relative"
+            title={user ? `Signed in as ${user.firstName}` : 'Sign in'}
+          >
             <User className="h-5 w-5" />
+            {user && (
+              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
+            )}
             <span className="sr-only">Account</span>
           </Button>
           <Button variant="ghost" size="icon" className="relative" onClick={openCart}>

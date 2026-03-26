@@ -6,6 +6,7 @@ import productsRouter from './routes/products';
 import categoriesRouter from './routes/categories';
 import uploadRouter from './routes/upload';
 import adminRouter from './routes/admin';
+import authRouter from './routes/auth';
 import { rateLimit } from './middleware/rateLimit';
 
 const app = new Hono();
@@ -17,6 +18,8 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:8080',
+  'http://localhost:8083',
+  'http://localhost:8084',
   'http://localhost:3000',
   'https://lyra-fashion.vercel.app',          // main storefront
   'https://lyra-fashion-builder.vercel.app',  // CRM
@@ -29,7 +32,7 @@ app.use(
       if (!origin || ALLOWED_ORIGINS.has(origin)) return origin ?? '*';
       return null;
     },
-    allowHeaders: ['Content-Type', 'x-api-key'],
+    allowHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   }),
 );
@@ -47,10 +50,12 @@ app.use('/api/products/*', publicLimit);
 app.use('/api/categories/*', publicLimit);
 app.use('/api/upload/*', uploadLimit);
 app.use('/api/admin/*', adminLimit);
+app.use('/api/auth/*', rateLimit({ windowMs: 60_000, max: 20 })); // strict limit on auth endpoints
 
 app.route('/api/products', productsRouter);
 app.route('/api/categories', categoriesRouter);
 app.route('/api/upload', uploadRouter);
 app.route('/api/admin', adminRouter);
+app.route('/api/auth', authRouter);
 
 export default app;

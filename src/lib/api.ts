@@ -69,6 +69,35 @@ export const productsApi = {
     request<{ data: ApiProduct[] }>(`/products/search?q=${encodeURIComponent(q)}`),
 };
 
+// ─── Customer Auth ────────────────────────────────────────────────────────────
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  createdAt: string;
+}
+
+export const authApi = {
+  register: (body: { email: string; password: string; firstName: string; lastName: string }) =>
+    request<{ data: { token: string; user: AuthUser } }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  login: (body: { email: string; password: string }) =>
+    request<{ data: { token: string; user: AuthUser } }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  me: (token: string) =>
+    request<{ data: AuthUser }>('/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+};
+
 // ─── Categories ───────────────────────────────────────────────────────────────
 
 export interface ApiCategory {
