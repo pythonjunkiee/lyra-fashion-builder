@@ -24,7 +24,7 @@ if (!DATABASE_URL) throw new Error('DATABASE_URL env var is required');
 
 const sql = neon(DATABASE_URL);
 
-const TABLES = ['categories', 'products', 'clients', 'client_purchases'] as const;
+const TABLES = ['categories', 'products', 'clients', 'client_purchases', 'users'] as const;
 
 async function main() {
   const [{ current_user: dbRole }] = await sql('SELECT current_user') as [{ current_user: string }];

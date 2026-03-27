@@ -7,6 +7,7 @@ const BASE = '/api';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,
   });
@@ -81,21 +82,22 @@ export interface AuthUser {
 
 export const authApi = {
   register: (body: { email: string; password: string; firstName: string; lastName: string }) =>
-    request<{ data: { token: string; user: AuthUser } }>('/auth/register', {
+    request<{ data: { user: AuthUser } }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
 
   login: (body: { email: string; password: string }) =>
-    request<{ data: { token: string; user: AuthUser } }>('/auth/login', {
+    request<{ data: { user: AuthUser } }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
 
-  me: (token: string) =>
-    request<{ data: AuthUser }>('/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
+  me: () =>
+    request<{ data: AuthUser }>('/auth/me'),
+
+  logout: () =>
+    request<{ success: boolean }>('/auth/logout', { method: 'POST' }),
 };
 
 // ─── Categories ───────────────────────────────────────────────────────────────

@@ -7,7 +7,7 @@ import categoriesRouter from './routes/categories';
 import uploadRouter from './routes/upload';
 import adminRouter from './routes/admin';
 import authRouter from './routes/auth';
-import { rateLimit } from './middleware/rateLimit';
+import { rateLimit, authRateLimit } from './middleware/rateLimit';
 
 const app = new Hono();
 
@@ -32,8 +32,9 @@ app.use(
       if (!origin || ALLOWED_ORIGINS.has(origin)) return origin ?? '*';
       return null;
     },
-    allowHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
+    allowHeaders: ['Content-Type', 'x-api-key', 'Authorization', 'cookie'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
   }),
 );
 
@@ -50,7 +51,7 @@ app.use('/api/products/*', publicLimit);
 app.use('/api/categories/*', publicLimit);
 app.use('/api/upload/*', uploadLimit);
 app.use('/api/admin/*', adminLimit);
-app.use('/api/auth/*', rateLimit({ windowMs: 60_000, max: 20 })); // strict limit on auth endpoints
+app.use('/api/auth/*', authRateLimit()); // 10 req / 15 min per IP — Redis-backed when available
 
 app.route('/api/products', productsRouter);
 app.route('/api/categories', categoriesRouter);
